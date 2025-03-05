@@ -2,15 +2,23 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "your-dockerhub-username/airbnb-clone-frontend"
+        DOCKER_IMAGE = "gowshik204/airbnb-clone-frontend"
     }
 
     stages {
         stage('Clone Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/GOWSHIK-2004/airbnb-clone.git'
-                dir('frontend') {
-                    echo "Switched to frontend directory"
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                dir('frontend') { // Ensures we are working in frontend folder
+                    writeFile file: '.env', text: """
+                    VITE_API_DOMAIN=http://localhost
+                    VITE_PORT=5001
+                    """
                 }
             }
         }
@@ -21,35 +29,41 @@ pipeline {
                     def nodeHome = tool name: 'nodejs-18', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
                     env.PATH = "${nodeHome}/bin:${env.PATH}"
                 }
-                sh 'npm install'
+                dir('frontend') {
+                    sh 'npm install'
+                }
             }
         }
 
         stage('Build Project') {
             steps {
-                sh 'npm run build'
+                dir('frontend') {
+                    sh 'npm run build'
+                }
             }
         }
 
         stage('Docker Build & Push') {
             steps {
-                sh '''
-                docker build -t $DOCKER_IMAGE:latest .
-                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                docker push $DOCKER_IMAGE:latest
-                '''
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    dir('frontend') {
+                        sh '''
+                        docker build -t $DOCKER_IMAGE:latest -f Dockerfile .
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $DOCKER_IMAGE:latest
+                        '''
+                    }
+                }
             }
         }
-
-    
     }
 
     post {
         success {
-            echo "Deployment Successful!"
+            echo " Docker Image Built & Pushed Successfully!"
         }
         failure {
-            echo "Deployment Failed!"
+            echo " Build or Docker Push Failed!"
         }
     }
 }
