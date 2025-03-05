@@ -44,18 +44,16 @@ pipeline {
         }
 
         stage('Docker Build & Push') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    dir('frontend') {
-                        sh '''
-                        docker build -t $DOCKER_IMAGE:latest .
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push $DOCKER_IMAGE:latest
-                        '''
-                    }
-                }
-            }
+    steps {
+        dir('frontend') {
+            sh 'docker build -t $DOCKER_IMAGE -f dockerfile .'
         }
+        withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+            sh 'docker push $DOCKER_IMAGE:latest'
+        }
+    }
+}
+
     }
 
     post {
