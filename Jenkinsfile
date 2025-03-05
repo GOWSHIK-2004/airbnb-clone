@@ -48,7 +48,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     dir('frontend') {
                         sh '''
-                        docker build -t $DOCKER_IMAGE:latest -f Dockerfile .
+                        docker build -t $DOCKER_IMAGE:latest .
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push $DOCKER_IMAGE:latest
                         '''
