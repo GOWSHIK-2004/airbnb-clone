@@ -43,16 +43,21 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
-    steps {
-       sh '''
-        docker build -t gowshik204/airbnb-clone-frontend -f frontend/dockerfile .
-        '''
-        withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-            sh 'docker push $DOCKER_IMAGE:latest'
+         stage('Docker Build & Push') {
+            steps {
+                script {
+                    def dockerImage = "${DOCKER_IMAGE}:latest"
+
+                    // Build the Docker image
+                    sh "docker build -t ${dockerImage} -f frontend/Dockerfile ."
+
+                    // Authenticate and push the image
+                    withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+                        sh "docker push ${dockerImage}"
+                    }
+                }
+            }
         }
-    }
-}
 
     }
 
