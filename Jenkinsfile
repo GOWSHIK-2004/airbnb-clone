@@ -45,9 +45,9 @@ pipeline {
 
         stage('Docker Build & Push') {
     steps {
-        dir('frontend') {
-            sh 'docker build -t $DOCKER_IMAGE -f dockerfile .'
-        }
+       sh '''
+        docker build -t gowshik204/airbnb-clone-frontend -f frontend/dockerfile .
+        '''
         withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
             sh 'docker push $DOCKER_IMAGE:latest'
         }
