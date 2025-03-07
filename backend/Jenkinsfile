@@ -24,9 +24,13 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+       stage('Install Dependencies') {
     steps {
-        dir('backend') {  
+        script {
+            def nodejs = tool name: 'nodejs-18', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+            env.PATH = "${nodejs}/bin:${env.PATH}"
+        }
+        dir('backend') {
             sh 'npm install --only=production'
         }
     }
