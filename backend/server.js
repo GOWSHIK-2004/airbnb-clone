@@ -8,10 +8,16 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { loadTrie } from './controllers/placeController.js';
 
-dotenv.config();
+dotenv.config(); // Load environment variables
+
+// Debugging: Check if env variables are loaded properly
+console.log("🔍 CONNECTION_STRING:", process.env.CONNECTION_STRING || "Not Found");
+
+// Initialize Express
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors({
     origin: process.env.FRONTEND_DOMAIN,
     credentials: true
@@ -19,13 +25,19 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Routes
 app.use("/api/user", userRoutes);
 app.use("/api/place", placeRoutes);
 
+// Error Handling Middleware
 app.use(errorHandler);
 
-app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-    connectDb();
-    loadTrie();
+// Ensure DB connection before starting server
+connectDb().then(() => {
+    app.listen(port, () => {
+        console.log(`🚀 Server is running on port ${port}`);
+        loadTrie();
+    });
+}).catch(err => {
+    console.error("❌ Server failed to start due to DB connection error:", err);
 });
