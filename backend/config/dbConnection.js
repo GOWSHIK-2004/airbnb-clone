@@ -2,24 +2,23 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import asyncHandler from "express-async-handler";
 
-dotenv.config(); // Ensure environment variables are loaded
+dotenv.config(); // Load environment variables
 
 const connectDb = asyncHandler(async () => {
-    if (!process.env.CONNECTION_STRING) {
-        throw new Error("❌ CONNECTION_STRING is not defined in .env file!");
+    if (!process.env.MONGODB_URI) {
+        throw new Error("❌ MONGODB_URI is not defined in the .env file! Ensure your local database is configured.");
     }
 
     try {
-        const connect = await mongoose.connect(process.env.CONNECTION_STRING, {
+        const connect = await mongoose.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
-        console.log(`✅ Database connected: ${connect.connection.host}`);
+        console.log(`✅ Connected to Local MongoDB at: ${connect.connection.host}`);
     } catch (error) {
-        console.error("❌ Database connection failed:", error);
-        process.exit(1); // Stop the app if DB connection fails
+        console.error("❌ Local MongoDB connection failed:", error);
+        process.exit(1); // Stop the app if the connection fails
     }
 });
 
 export default connectDb;
-
