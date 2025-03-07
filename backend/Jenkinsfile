@@ -37,16 +37,18 @@ pipeline {
 }
 
 
-        stage('Docker Build & Push') {
-            steps {
-                sh '''
-                docker build -t gowshik204/airbnb-clone-backend -f Dockerfile .
-                '''
-                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-                    sh 'docker push $DOCKER_IMAGE:latest'
-                }
-            }
+        steps {
+    dir('backend') { 
+        sh '''
+        docker build -t gowshik204/airbnb-clone-backend -f Dockerfile .
+        '''
+        withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+            sh '''
+            docker push gowshik204/airbnb-clone-backend:latest
+            '''
         }
+    }
+}
 
         stage('Deploy Backend') {
             steps {
