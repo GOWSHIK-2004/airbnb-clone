@@ -1,43 +1,37 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import connectDb from './config/dbConnection.js';
-import errorHandler from './middleware/errorHandler.js';
-import userRoutes from './routes/userRoutes.js';
-import placeRoutes from './routes/placeRoutes.js';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import { loadTrie } from './controllers/placeController.js';
+import express from "express";
+import dotenv from "dotenv";
+import connectDb from "./config/dbConnection.js";
+import errorHandler from "./middleware/errorHandler.js";
+import userRoutes from "./routes/userRoutes.js";
+import placeRoutes from "./routes/placeRoutes.js";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import { loadTrie } from "./controllers/placeController.js";
 
-dotenv.config(); // Load environment variables
-
-// Debugging: Check if env variables are loaded properly
-console.log("🔍 CONNECTION_STRING:", process.env.CONNECTION_STRING || "Not Found");
-
-// Initialize Express
+dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({
-    origin: process.env.FRONTEND_DOMAIN,
-    credentials: true
-}));
+// Ensure database connects before the server starts
+(async () => {
+    await connectDb();
+})();
+
+app.use(
+    cors({
+        origin: process.env.FRONTEND_DOMAIN, // Ensure this is set in .env
+        credentials: true,
+    })
+);
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
 app.use("/api/user", userRoutes);
 app.use("/api/place", placeRoutes);
 
-// Error Handling Middleware
 app.use(errorHandler);
 
-// Ensure DB connection before starting server
-connectDb().then(() => {
-    app.listen(port, () => {
-        console.log(`🚀 Server is running on port ${port}`);
-        loadTrie();
-    });
-}).catch(err => {
-    console.error("❌ Server failed to start due to DB connection error:", err);
+app.listen(port, () => {
+    console.log(`🚀 Server is listening on port ${port}`);
+    loadTrie(); // Ensure this doesn't break if DB is not ready
 });
