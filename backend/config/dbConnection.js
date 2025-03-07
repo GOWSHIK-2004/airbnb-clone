@@ -1,19 +1,25 @@
 import mongoose from "mongoose";
-import asyncHandler from "express-async-handler";
 import dotenv from "dotenv";
+import asyncHandler from "express-async-handler";
 
-dotenv.config();
-
-
-console.log("CONNECTION_STRING:", process.env.CONNECTION_STRING);
+dotenv.config(); // Ensure environment variables are loaded
 
 const connectDb = asyncHandler(async () => {
     if (!process.env.CONNECTION_STRING) {
-        throw new Error(" CONNECTION_STRING is undefined. Check your .env file.");
+        throw new Error("❌ CONNECTION_STRING is not defined in .env file!");
     }
 
-    const connect = await mongoose.connect(process.env.CONNECTION_STRING);
-    console.log("Database connected: ", connect.connection.host);
+    try {
+        const connect = await mongoose.connect(process.env.CONNECTION_STRING, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log(`✅ Database connected: ${connect.connection.host}`);
+    } catch (error) {
+        console.error("❌ Database connection failed:", error);
+        process.exit(1); // Stop the app if DB connection fails
+    }
 });
 
 export default connectDb;
+
