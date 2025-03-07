@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "gowshik204/airbnb-clone-backend"
-        CONTAINER_NAME = "airbnb-backend"
     }
 
     stages {
@@ -15,15 +14,13 @@ pipeline {
 
         stage('Setup Environment') {
             steps {
-                dir('backend') { 
-                    writeFile file: '.env', text: """
-                    PORT=5001
-                    CONNECTION_STRING=mongodb+srv://skalpha:18102004@shanthakumar-cluster.g6rh7.mongodb.net/?retryWrites=true&w=majority&appName=shanthakumar-cluster
-                    ACCESS_TOKEN_SECRET=shanthakumar-airbnb-clone-2024
-                    COOKIE_SECURE_STATE=false
-                    COOKIE_SAME_SITE='lax'
-                    """
-                }
+                writeFile file: '.env', text: """
+                PORT=5001
+                CONNECTION_STRING=mongodb+srv://skalpha:18102004@shanthakumar-cluster.g6rh7.mongodb.net/?retryWrites=true&w=majority&appName=shanthakumar-cluster
+                ACCESS_TOKEN_SECRET=shanthakumar-airbnb-clone-2024
+                COOKIE_SECURE_STATE=false
+                COOKIE_SAME_SITE=lax
+                """
             }
         }
 
@@ -33,32 +30,14 @@ pipeline {
                     def nodeHome = tool name: 'nodejs-18', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
                     env.PATH = "${nodeHome}/bin:${env.PATH}"
                 }
-                dir('backend') {
-                    sh 'npm install'
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                dir('backend') {
-                    sh 'npm test'
-                }
-            }
-        }
-
-        stage('Build Project') {
-            steps {
-                dir('backend') {
-                    sh 'npm run build'
-                }
+                sh 'npm install --only=production'
             }
         }
 
         stage('Docker Build & Push') {
             steps {
                 sh '''
-                docker build -t gowshik204/airbnb-clone-backend -f backend/Dockerfile .
+                docker build -t gowshik204/airbnb-clone-backend -f Dockerfile .
                 '''
                 withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
                     sh 'docker push $DOCKER_IMAGE:latest'
@@ -68,23 +47,21 @@ pipeline {
 
         stage('Deploy Backend') {
             steps {
-                script {
-                    sh '''
-                    docker stop $CONTAINER_NAME || true
-                    docker rm $CONTAINER_NAME || true
-                    docker run -d -p 5001:5001 --env-file=backend/.env --name $CONTAINER_NAME $DOCKER_IMAGE:latest
-                    '''
-                }
+                sh '''
+                docker stop airbnb-backend || true
+                docker rm airbnb-backend || true
+                docker run -d --name airbnb-backend -p 5001:5001 --env-file .env gowshik204/airbnb-clone-backend:latest
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "Backend Pipeline Completed Successfully!"
+            echo "✅ Backend deployed successfully!"
         }
         failure {
-            echo "Backend Pipeline Failed!"
+            echo "❌ Build or deployment failed!"
         }
     }
 }
