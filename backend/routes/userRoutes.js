@@ -1,12 +1,10 @@
 import express from 'express'
 import validateToken from '../middleware/validateTokenhandler.js'
-import { registerUser, loginUser, currentUser, logoutUser, getUserById, updateUser, setProfilePic, removeProfilePic, addToFavourites, removeFromFavourites, getFavourites, sendOtp, verifyOtp, changePass, changePassOtpVerified } from '../controllers/userController.js'
-import uploadProfile from '../config/multerConfigUser.js';
+import { registerUser, loginUser, currentUser, logoutUser, getUserById, updateUser, setProfilePic, addToFavourites, removeFromFavourites, getFavourites, sendOtp, verifyOtp, changePass, changePassOtpVerified } from '../controllers/userController.js'
 
 const router = express.Router();
 
-router.route("/set-profile-pic").post(validateToken, uploadProfile.single('photo'), setProfilePic);
-router.route("/remove-profile-pic").post(validateToken, removeProfilePic);
+router.route("/set-profile-pic").post(validateToken, setProfilePic);
 
 router.route("/favourites").get(validateToken, getFavourites);
 router.route("/add-to-favourites").post(validateToken, addToFavourites);

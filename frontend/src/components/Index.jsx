@@ -68,7 +68,7 @@ function Index() {
                         <Link to={`/place/${place._id}`}>
                             <img
                                 className="aspect-video sm:aspect-square rounded-xl object-cover"
-                                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${place.photos[0]}`}
+                                src={place.photos[0]}
                                 alt={place.title}
                             />
                             <div className="p-2">

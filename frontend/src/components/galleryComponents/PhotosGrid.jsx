@@ -10,7 +10,7 @@ export default function PhotosGrid({ photos, toggle }) {
                             <img
                                 onClick={(e) => toggle(true)}
                                 className="aspect-square object-cover cursor-pointer"
-                                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${photos[0]}`}
+                                src={photos[0]}
                                 alt={photos[0]}
                             />
                         </div>
@@ -18,25 +18,25 @@ export default function PhotosGrid({ photos, toggle }) {
                             <img
                                 onClick={(e) => toggle(true)}
                                 className="aspect-square object-cover cursor-pointer"
-                                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${photos[1]}`}
+                                src={photos[1]}
                                 alt={photos[1]}
                             />
                             <img
                                 onClick={(e) => toggle(true)}
                                 className="aspect-square object-cover cursor-pointer"
-                                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${photos[2]}`}
+                                src={photos[2]}
                                 alt={photos[2]}
                             />
                             <img
                                 onClick={(e) => toggle(true)}
                                 className="aspect-square object-cover cursor-pointer"
-                                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${photos[3]}`}
+                                src={photos[3]}
                                 alt={photos[3]}
                             />
                             <img
                                 onClick={(e) => toggle(true)}
                                 className="aspect-square object-cover cursor-pointer"
-                                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${photos[4]}`}
+                                src={photos[4]}
                                 alt={photos[4]}
                             />
                         </div>
@@ -47,7 +47,7 @@ export default function PhotosGrid({ photos, toggle }) {
                         <img
                             onClick={(e) => toggle(true)}
                             className="aspect-video object-cover cursor-pointer"
-                            src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${photos[0]}`}
+                            src={photos[0]}
                             alt={photos[0]}
                         />
                     </div>

@@ -2,21 +2,13 @@ import asyncHandler from "express-async-handler";
 import dotenv from 'dotenv';
 import Place from '../models/placeModel.js'
 import User from "../models/userModel.js";
-import { fileURLToPath } from 'url';
-import { dirname, extname, join, resolve } from 'path';
-import imageDownloader from 'image-downloader';
 import Booking from "../models/bookingModel.js";
-import fs from 'fs';       // for deleting files from storage
-import sharp from "sharp"; // for img compression
 import Trie from "../dsa/trie.js";
 import mergeInterval from "../dsa/mergeInterval.js";
 import transporter from "../config/nodeMailerConfig.js";
 import { format } from "date-fns";
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(dirname(__filename));
 
 // search trie initialization
 const trie = new Trie();
@@ -33,71 +25,17 @@ async function loadTrie() {
     }
 };
 
-
-
-// @desc Upload photos using link
-// @route POST /api/place/photo/upload-by-link
-// @access private
-const uploadByLink = asyncHandler(async (req, res) => {
-    const { link } = req.body;
-    const extension = extname(link); // Preserve the original extension
-    const newName = `${req.user.name}-${Date.now()}${extension}`;
-    const filePath = join(__dirname, 'uploads/temp', newName);
-    const compressName = `${req.user.name}-compress-${Date.now()}${extension}`;
-    const filePathCompress = join(__dirname, 'uploads/placePhotos', compressName);
-
-    try {
-        await imageDownloader.image({
-            url: link,
-            dest: filePath,
-        });
-
-        // Compress the image (keep the original format)
-        await sharp(filePath)
-            .resize(800) // Resize to max width of 800px
-            .toFile(filePathCompress); // Overwrite the file with the compressed version
-
-        res.status(200).json({ fileName: compressName });
-    } catch (e) {
-        res.status(404);
-        throw new Error('Invalid link or compression error' + e);
-    }
-});
-
-// @desc Upload photos from device
-// @route POST /api/place/photo/upload-from-device
-// @access private
-const uploadFromDevice = asyncHandler(async (req, res) => {
-    if (!req.files || req.files.length === 0) {
-        res.status(400);
-        throw new Error('No files uploaded');
-    }
-
-    const fileNames = [];
-
-    for (const file of req.files) {
-        const originalFilePath = resolve('uploads/temp', file.filename);
-        const compressedFileName = req.user.name + '-compress-' + Date.now() + extname(file.originalname);
-        const compressedFilePath = resolve('uploads/placePhotos', compressedFileName);
-
-        try {
-            // Compress the image using sharp
-            await sharp(originalFilePath)
-                .resize(800) // Resize to a max width of 800px (or adjust as needed)
-                .toFile(compressedFilePath); // Save the compressed version
-
-            // Add compressed filename to response array
-            fileNames.push(compressedFileName);
-        } catch (error) {
-            console.error('Error processing image:', error);
-            res.status(500);
-            throw new Error('Error processing image');
-        }
-    }
-
-    // Send the filenames as response
-    res.json({ fileNames });
-});
+// to filter out photos added by link and from device
+// photos uploaded from device would be stored in firebase, this function is used to filter those photos and delete in firebase as well
+function getFirebaseLinks(photos){
+    let res = [];
+    photos.forEach((url) => {
+        const list = url.split("/");
+        if(list[2] == "firebasestorage.googleapis.com")
+            res.push(url);
+    });
+    return res
+}
 
 // @desc Add an accommodation
 // @route POST /api/place/add
@@ -150,7 +88,7 @@ const updateAccommodation = asyncHandler(async (req, res) => {
     const oldName = data.address.city;
 
     const updated = await Place.findByIdAndUpdate(req.params.id, req.body, { new: true });
-
+    getFirebaseLinks(updated.photos);
     // trie updataion
     const newName = updated.address.city;
     if (oldName !== newName) {
@@ -174,7 +112,7 @@ const deleteAccommodation = asyncHandler(async (req, res) => {
         throw new Error("User not authorized to delete this place")
     }
 
-    const photos = data.photos;
+    const firebasePhotos = getFirebaseLinks(data.photos);
 
     const deleted = await Place.findByIdAndDelete(req.params.id);
     if (!deleted) {
@@ -184,20 +122,9 @@ const deleteAccommodation = asyncHandler(async (req, res) => {
 
     trie.delete(data.address.city, data.id);  // Delete place from the Trie
 
-    // For deleting files locally
-    photos.forEach((photo) => {
-        const filePath = join(__dirname, "uploads", "placePhotos", photo); // Adjust the path to your uploads directory
-        fs.unlink(filePath, (err) => {
-            if (err && err.code !== "ENOENT") {
-                // Log error if it's not a "file not found" error
-                throw new Error(`Failed to delete file: ${filePath}, err`);
-            }
-        });
-    });
-
     res.status(200).json({
         message: "Accommodation deleted successfully",
-        deleted,
+        photos: firebasePhotos,
     });
 });
 
@@ -504,4 +431,4 @@ const searchByName = asyncHandler(async (req, res) => {
     res.json(places);
 })
 
-export { uploadByLink, uploadFromDevice, addAccommodation, updateAccommodation, deleteAccommodation, rateAccommodation, getPlaceRatings, getMyAccommodations, bookAccommodation, cancelBooking, getMyBookings, getAccommodationById, getAccommodations, loadTrie, searchByName }
+export { addAccommodation, updateAccommodation, deleteAccommodation, rateAccommodation, getPlaceRatings, getMyAccommodations, bookAccommodation, cancelBooking, getMyBookings, getAccommodationById, getAccommodations, loadTrie, searchByName }

@@ -11,7 +11,7 @@ export default function Gallery({ photos, toggle }) {
                     <div key={index}>
                         <img
                             className="rounded-2xl"
-                            src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${photo}`}
+                            src={photo}
                             alt={photo}
                         />
                     </div>

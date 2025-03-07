@@ -2,17 +2,10 @@ import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import fs from 'fs';       // for deleting files from storage
 import dotenv from 'dotenv';
-import sharp from "sharp"; // for img compression
 import NodeCache from 'node-cache';
 import transporter from "../config/nodeMailerConfig.js"; // for node mailer
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(dirname(__filename));
 
 const otpCache = new NodeCache({ stdTTL: 300, checkperiod: 60 }) // OTPs expire after 5 minutes
 
@@ -187,45 +180,12 @@ const logoutUser = asyncHandler(async (req, res) => {
 // @route POST /api/user/set-profile-pic
 // @access private
 const setProfilePic = asyncHandler(async (req, res) => {
-    if (!req.file) {
-        res.status(400);
-        throw new Error('No file uploaded');
-    }
-    const prevProfile = req.user.profilePic;
-    const img = req.file.filename;
-
-    // Path where the original uploaded file is saved
-    const originalFilePath = join(__dirname, 'uploads', 'temp', img);
-
-    // Compress the image using sharp
-    const compressedFileName = `compressed-${img}`;
-    const compressedFilePath = join(__dirname, 'uploads', 'profile', compressedFileName);
-
-    try {
-        await sharp(originalFilePath)
-            .resize(500)  // Resize to max width of 300px
-            .toFile(compressedFilePath);  // Save the compressed version
-
-    } catch (error) {
-        res.status(500);
-        throw new Error('Error processing image');
-    }
-
-    const updated = await User.findByIdAndUpdate(req.user.id, { profilePic: compressedFileName }, { new: true });
+    const { profileUrl } = req.body;
+    const updated = await User.findByIdAndUpdate(req.user.id, { profilePic: profileUrl }, { new: true });
 
     if (!updated) {
         res.status(400);
         throw new Error("user not found")
-    }
-
-    if (prevProfile != "" && prevProfile != undefined) {
-        const filePath = join(__dirname, "uploads", "profile", prevProfile); // Adjust the path to your uploads directory
-        fs.unlink(filePath, (err) => {
-            if (err && err.code !== "ENOENT") {
-                // Log error if it's not a "file not found" error
-                throw new Error(`Failed to delete file: ${filePath}, err`);
-            }
-        });
     }
 
     const accessToken = jwt.sign({
@@ -246,50 +206,7 @@ const setProfilePic = asyncHandler(async (req, res) => {
         sameSite: process.env.COOKIE_SAME_SITE,
         secure: process.env.COOKIE_SECURE_STATE,
     }).json({
-        img: compressedFileName
-    });
-});
-
-// @desc remove profile picture for a user
-// @route POST /api/user/remove-profile-pic
-// @access private
-const removeProfilePic = asyncHandler(async (req, res) => {
-    const photo = req.user.profilePic;
-
-    const updated = await User.findByIdAndUpdate(req.user.id, { profilePic: "" }, { new: true });
-
-    if (!updated) {
-        res.status(400);
-        throw new Error("user not found")
-    }
-
-    const filePath = join(__dirname, "uploads", "profile", photo); // Adjust the path to your uploads directory
-    fs.unlink(filePath, (err) => {
-        if (err && err.code !== "ENOENT") {
-            // Log error if it's not a "file not found" error
-            throw new Error(`Failed to delete file: ${filePath}, err`);
-        }
-    });
-
-    const accessToken = jwt.sign({
-        user: {
-            id: updated.id,
-            name: updated.name,
-            email: updated.email,
-            language: updated.language,
-            profilePic: updated.profilePic,
-            favourites: updated.favourites,
-            createdAt: updated.createdAt
-        }
-    },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "12h" });
-    res.status(200).cookie('accessToken', accessToken, {
-        httpOnly: true,
-        sameSite: process.env.COOKIE_SAME_SITE,
-        secure: process.env.COOKIE_SECURE_STATE,
-    }).json({
-        img: ""
+        img: profileUrl
     });
 });
 
@@ -508,4 +425,4 @@ const getUserById = asyncHandler(async (req, res) => {
     res.json({ name: user.name, email: user.email, old, id: user.id, profilePic: user.profilePic }).status(200);
 });
 
-export { registerUser, loginUser, updateUser, currentUser, logoutUser, getUserById, setProfilePic, removeProfilePic, addToFavourites, removeFromFavourites, getFavourites, changePass, changePassOtpVerified, sendOtp, verifyOtp }
+export { registerUser, loginUser, updateUser, currentUser, logoutUser, getUserById, setProfilePic, addToFavourites, removeFromFavourites, getFavourites, changePass, changePassOtpVerified, sendOtp, verifyOtp }

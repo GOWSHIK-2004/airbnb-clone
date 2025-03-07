@@ -1,6 +1,8 @@
 import { useContext, useState } from "react"
 import { UserContext } from "../UserContext"
 import { Link, Navigate, useNavigate } from "react-router-dom"
+import { storage } from "../../firebaseConfig";
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 import axios from "axios";
 
 export default function Profile() {
@@ -22,21 +24,20 @@ export default function Profile() {
     }
 
     async function setProfilePic(e) {
-        const selectedFile = e.target.files[0]; // Get the first (and only) selected file
-        if (!selectedFile) return;
+        const file = e.target.files[0];
+        if (!file) return;
 
         setchgProf(true);
-        const formData = new FormData();
-        formData.append('photo', selectedFile); // Append the file using the field name 'photo'
-
         try {
-            const res = await axios.post('/user/set-profile-pic', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            const storageRef = ref(storage, `profile/${file.name}`);
+            const snapshot = await uploadBytesResumable(storageRef, file);
+            const url = await getDownloadURL(snapshot.ref);
+            const res = await axios.post('/user/set-profile-pic', {
+                profileUrl: url
             });
             setProfile(res.data.img);
             setchgProf(false);
+
         } catch (e) {
             if (e.response.status >= 400) {
                 alert(e.response.data.message);
@@ -48,8 +49,18 @@ export default function Profile() {
     async function removeProfilePic(e) {
         e.preventDefault();
         setRemProf(true);
+
         try {
-            const res = await axios.post('/user/remove-profile-pic', {});
+            // Extract the file path from the URL
+            const filePath = profile.split("/o/")[1].split("?")[0];
+            const decodedPath = decodeURIComponent(filePath);
+
+            const storageRef = ref(storage, decodedPath);
+            await deleteObject(storageRef);
+
+            const res = await axios.post('/user/set-profile-pic', {
+                profileUrl: ""
+            });
             setProfile(res.data.img);
             setRemProf(false);
         } catch (e) {
@@ -86,7 +97,7 @@ export default function Profile() {
             <div className="w-full md:max-w-80 rounded-2xl py-10 px-10 flex flex-col items-center" style={{ boxShadow: '0px 0px 20px rgba(0, 0, 0, 0.2)' }}>
                 {(profile != undefined && profile != '') &&
                     <div className="w-52 rounded-full overflow-hidden">
-                        <img src={`${import.meta.env.VITE_API_DOMAIN}/profile/${profile}`}
+                        <img src={profile}
                             className="aspect-square object-cover" />
                     </div>
                 }

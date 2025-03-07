@@ -36,14 +36,14 @@ export default function BookingPage() {
                 <a target="_blank" href={`https://maps.google.com/?q=${place.address?.city}`}>{place.address?.city}, {place.address?.country}</a>
             </div>
 
-            <div className="flex justify-between bg-gray-100 rounded-2xl p-5 mt-5 mb-3">
+            <div className="flex flex-col sm:flex-row justify-between bg-gray-100 rounded-2xl p-5 mt-5 mb-3">
                 <div>
                     <p className="font-medium text-lg mb-3">Your booking information:</p>
                     <div className="flex items-center gap-2 mb-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                         </svg>
-                        <p className="">{format(new Date(booking.checkIn), "dd-MM-yyyy")} - {format(new Date(booking.checkOut), "dd-MM-yyyy")}</p>
+                        <p>{format(new Date(booking.checkIn), "dd-MM-yyyy")} - {format(new Date(booking.checkOut), "dd-MM-yyyy")}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
@@ -52,7 +52,7 @@ export default function BookingPage() {
                         <p>{booking.nights} nights</p>
                     </div>
                 </div>
-                <div className="bg-primary text-white rounded-2xl text-center flex flex-col justify-center px-5 py-3">
+                <div className="mt-5 sm:mt-0 bg-primary text-white rounded-2xl text-center flex flex-col justify-center px-5 py-3">
                     <p>Total price</p>
                     <p className="font-medium text-2xl relative right-0.5"><i className='bx bx-rupee relative top-0.5 left-0.5'></i>{booking.price}</p>
                 </div>

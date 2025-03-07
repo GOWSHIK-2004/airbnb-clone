@@ -24,11 +24,11 @@ function Header() {
             <div className={`fixed top-0 left-0 w-full bg-white z-50 transition-all duration-300 ease-in-out ${isSearchFocused ? "md:h-48" : "md:h-[86px]"}`} style={{ boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.2)' }}>
                 <div className="flex items-center justify-between p-4 container mx-auto">
                     <Link to="/" onClick={(e) => { setSearchQuery(""); setTypedSearch(""); setGuestCount(''); setTypedCount(''); }} className="text-primary">
-                        <div className="flex items-center gap-1">
+                        <div className="items-center gap-1 flex">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8 -rotate-90">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
                             </svg>
-                            <span className="hidden lg:block font-semibold text-2xl">airbnb</span>
+                            <span className="font-semibold text-2xl">airbnb</span>
                         </div>
                     </Link>
 
@@ -54,26 +54,16 @@ function Header() {
                         </button>
                     </div>
 
-                    {/* search bar for small screens */}
-                    <div className="relative overflow-hidden flex w-full mx-4 justify-between md:hidden items-center gap-4 shadow shadow-gray-200 border border-gray-300 rounded-full py-2 ps-6 hover:shadow-md">
-                        <i className="bx bx-search absolute left-4 text-lg"></i>
-                        <input className="focus:outline-none placeholder-black"
-                            placeholder="    Start your search"
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)} />
-                    </div>
-
                     <Link to={userName ? "/profile" : "/login"}>
                         <div className="flex items-center shadow shadow-gray-200 gap-4 border border-gray-300 rounded-full py-2 ps-2 md:ps-4 pe-2 hover:bg-gray-100">
-                            <div className="hidden md:block">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="hidden md:block size-6">
+                            <div className="ps-2 md:ps-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                                 </svg>
                             </div>
                             {(profile != undefined && profile != '') &&
                                 <div className="w-9 rounded-full overflow-hidden">
-                                    <img src={`${import.meta.env.VITE_API_DOMAIN}/profile/${profile}`}
+                                    <img src={profile}
                                         className="aspect-square object-cover" />
                                 </div>
                             }
@@ -95,6 +85,18 @@ function Header() {
                             )}
                         </div>
                     </Link>
+                </div>
+
+                {/* search bar for small screens */}
+                <div className="container mx-auto px-4">
+                <div className="relative overflow-hidden flex mb-5 justify-between md:hidden items-center gap-4 shadow shadow-gray-200 border border-gray-300 rounded-full py-2 ps-6 hover:shadow-md">
+                    <i className="bx bx-search absolute left-4 text-lg"></i>
+                    <input className="ms-5 focus:outline-none placeholder-black"
+                        placeholder="Start your search"
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)} />
+                </div>
                 </div>
 
                 {/* search bar expansion */}

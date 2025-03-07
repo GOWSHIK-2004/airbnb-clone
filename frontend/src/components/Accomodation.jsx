@@ -1,6 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { storage } from "../../firebaseConfig";
+import { ref, deleteObject } from "firebase/storage";
 import FetchingSkeleton from "./skeletons/FetchingSkeleton";
 
 export default function Accommodation() {
@@ -33,10 +35,21 @@ export default function Accommodation() {
             setDelLoading(true);
             setDelId(place._id);
             try {
-                await axios.post(`/place/delete/${place._id}`)
+                const res = await axios.post(`/place/delete/${place._id}`)
                 setUserPlaces(userPlaces.filter(item => item != place));
                 setDelLoading(false);
                 setDelId("");
+
+                const photos = res.data.photos;
+                for (const url of photos) {
+                    // Extract the file path from the URL
+                    const filePath = url.split("/o/")[1].split("?")[0];
+                    const decodedPath = decodeURIComponent(filePath);
+
+                    const storageRef = ref(storage, decodedPath);
+                    await deleteObject(storageRef);
+                }
+
             } catch (e) {
                 if (e.response.status >= 400) {
                     alert(e.response.data.message);
@@ -72,7 +85,7 @@ export default function Accommodation() {
                                     <div className="h-32 w-32 border-e flex-shrink-0">
                                         <img
                                             className="aspect-square object-cover"
-                                            src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${place.photos[0]}`}
+                                            src={place.photos[0]}
                                             alt={place.photos[0]}
                                         />
                                     </div>

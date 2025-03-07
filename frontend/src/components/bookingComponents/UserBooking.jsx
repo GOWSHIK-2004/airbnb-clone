@@ -78,7 +78,7 @@ export default function UserBooking() {
                         <div className="h-36 w-36 border-e flex-shrink-0">
                             <img
                                 className="aspect-square object-cover"
-                                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${booking.place.photos[0]}`}
+                                src={booking.place.photos[0]}
                                 alt={booking.title}
                             />
                         </div>
