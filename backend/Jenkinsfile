@@ -24,38 +24,39 @@ pipeline {
             }
         }
 
-       stage('Install Dependencies') {
-    steps {
-        script {
-            def nodejs = tool name: 'nodejs-18', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
-            env.PATH = "${nodejs}/bin:${env.PATH}"
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    def nodejs = tool name: 'nodejs-18', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+                    env.PATH = "${nodejs}/bin:${env.PATH}"
+                }
+                dir('backend') {
+                    sh 'npm install --only=production'
+                }
+            }
         }
-        dir('backend') {
-            sh 'npm install --only=production'
-        }
-    }
-}
 
-
-        steps {
-    dir('backend') { 
-        sh '''
-        docker build -t gowshik204/airbnb-clone-backend -f Dockerfile .
-        '''
-        withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-            sh '''
-            docker push gowshik204/airbnb-clone-backend:latest
-            '''
+        stage('Build & Push Docker Image') {  
+            steps {
+                dir('backend') { 
+                    sh '''
+                    docker build -t ${DOCKER_IMAGE} -f Dockerfile .
+                    '''
+                    withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+                        sh '''
+                        docker push ${DOCKER_IMAGE}:latest
+                        '''
+                    }
+                }
+            }
         }
-    }
-}
 
         stage('Deploy Backend') {
             steps {
                 sh '''
                 docker stop airbnb-backend || true
                 docker rm airbnb-backend || true
-                docker run -d --name airbnb-backend -p 5001:5001 --env-file .env gowshik204/airbnb-clone-backend:latest
+                docker run -d --name airbnb-backend -p 5001:5001 --env-file .env ${DOCKER_IMAGE}:latest
                 '''
             }
         }
