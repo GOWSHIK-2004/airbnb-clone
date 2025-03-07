@@ -16,8 +16,8 @@ pipeline {
             steps {
                 dir('frontend') { // Ensures we are working in frontend folder
                     writeFile file: '.env', text: """
-                    VITE_API_DOMAIN=http://localhost
-                    VITE_PORT=5001
+                    VITE_API_DOMAIN=http://172.17.0.4:5001
+                    
                     """
                 }
             }
