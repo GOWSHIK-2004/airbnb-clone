@@ -1,0 +1,90 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "gowshik204/airbnb-clone-backend"
+        CONTAINER_NAME = "airbnb-backend"
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/GOWSHIK-2004/airbnb-clone.git'
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                dir('backend') { 
+                    writeFile file: '.env', text: """
+                    PORT=5001
+                    CONNECTION_STRING=mongodb+srv://skalpha:18102004@shanthakumar-cluster.g6rh7.mongodb.net/?retryWrites=true&w=majority&appName=shanthakumar-cluster
+                    ACCESS_TOKEN_SECRET=shanthakumar-airbnb-clone-2024
+                    COOKIE_SECURE_STATE=false
+                    COOKIE_SAME_SITE='lax'
+                    """
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    def nodeHome = tool name: 'nodejs-18', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+                    env.PATH = "${nodeHome}/bin:${env.PATH}"
+                }
+                dir('backend') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                dir('backend') {
+                    sh 'npm test'
+                }
+            }
+        }
+
+        stage('Build Project') {
+            steps {
+                dir('backend') {
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                sh '''
+                docker build -t gowshik204/airbnb-clone-backend -f backend/Dockerfile .
+                '''
+                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+                    sh 'docker push $DOCKER_IMAGE:latest'
+                }
+            }
+        }
+
+        stage('Deploy Backend') {
+            steps {
+                script {
+                    sh '''
+                    docker stop $CONTAINER_NAME || true
+                    docker rm $CONTAINER_NAME || true
+                    docker run -d -p 5001:5001 --env-file=backend/.env --name $CONTAINER_NAME $DOCKER_IMAGE:latest
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Backend Pipeline Completed Successfully!"
+        }
+        failure {
+            echo "Backend Pipeline Failed!"
+        }
+    }
+}
