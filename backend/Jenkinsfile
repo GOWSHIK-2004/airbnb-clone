@@ -25,14 +25,13 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                script {
-                    def nodeHome = tool name: 'nodejs-18', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
-                    env.PATH = "${nodeHome}/bin:${env.PATH}"
-                }
-                sh 'npm install --only=production'
-            }
+    steps {
+        dir('backend') {  
+            sh 'npm install --only=production'
         }
+    }
+}
+
 
         stage('Docker Build & Push') {
             steps {
