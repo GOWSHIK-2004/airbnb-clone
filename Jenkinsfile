@@ -49,7 +49,7 @@ pipeline {
                     def dockerImage = "${DOCKER_IMAGE}:latest"
 
                     // Build the Docker image
-                    sh "docker build -t ${dockerImage} -f frontend/Dockerfile ."
+                    sh "docker build -t ${dockerImage} -f frontend/Dockerfile ./frontend"
 
                     // Authenticate and push the image
                     withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
