@@ -1,36 +1,21 @@
 # Use Node.js as the base image
 FROM node:18-alpine AS builder
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to install dependencies
-COPY package*.json ./
-
 # Install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Copy the entire frontend source code
+# Copy source code and build
 COPY . .
-
-# Build the application
 RUN npm run build
 
-# Use Nginx for serving static frontend files
+# Use Nginx for serving static files
 FROM nginx:alpine AS production
 
-# Set working directory for Nginx
 WORKDIR /usr/share/nginx/html
+COPY --from=builder /app/dist .
 
-# Remove default Nginx static files
-RUN rm -rf ./*
-
-# Copy the built frontend files from the builder stage
-COPY --from=builder /app/dist ./
-
-# Expose port 3000
 EXPOSE 3000
-
-# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
-
