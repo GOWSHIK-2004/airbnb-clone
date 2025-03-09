@@ -51,15 +51,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Backend') {
-            steps {
-                sh '''
-                docker stop airbnb-backend || true
-                docker rm airbnb-backend || true
-                docker run -d --name airbnb-backend -p 5001:5001 --env-file .env ${DOCKER_IMAGE}:latest
-                '''
-            }
-        }
+        
     }
 
     post {
