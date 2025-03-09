@@ -12,18 +12,6 @@ pipeline {
             }
         }
 
-        stage('Setup Environment') {
-            steps {
-                writeFile file: '.env', text: """
-                PORT=5001
-                CONNECTION_STRING=mongodb+srv://skalpha:18102004@shanthakumar-cluster.g6rh7.mongodb.net/?retryWrites=true&w=majority&appName=shanthakumar-cluster
-                ACCESS_TOKEN_SECRET=shanthakumar-airbnb-clone-2024
-                COOKIE_SECURE_STATE=false
-                COOKIE_SAME_SITE=lax
-                """
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 script {
@@ -40,7 +28,7 @@ pipeline {
             steps {
                 dir('backend') { 
                     sh '''
-                    docker build -t ${DOCKER_IMAGE} -f Dockerfile .
+                    docker build -t ${DOCKER_IMAGE}:latest -f Dockerfile .
                     '''
                     withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
                         sh '''
@@ -50,13 +38,11 @@ pipeline {
                 }
             }
         }
-
-        
     }
 
     post {
         success {
-            echo "✅ Backend deployed successfully!"
+            echo "✅ Backend Docker image built and pushed successfully!"
         }
         failure {
             echo "❌ Build or deployment failed!"
