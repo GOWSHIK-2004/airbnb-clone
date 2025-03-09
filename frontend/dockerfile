@@ -1,19 +1,15 @@
-# Use Node.js as the base image
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm cache clean --force
+RUN npm install --legacy-peer-deps
 
-# Copy source code and build
 COPY . .
 RUN npm run build
 
-# Use Nginx for serving static files
 FROM nginx:alpine AS production
-
 WORKDIR /usr/share/nginx/html
 COPY --from=builder /app/dist .
 
